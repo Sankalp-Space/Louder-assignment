@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sydney Events</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .event-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .event-card:hover {
+            transform: translateY(-0.25rem);
+            box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+        }
+        .event-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #2d3748;
+        }
+        .event-date {
+            font-size: 1rem;
+            color: #718096;
+            margin-bottom: 0.5rem;
+        }
+        .event-description {
+            font-size: 1.125rem;
+            color: #4a5568;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        .get-tickets-button {
+            background-color: #63b3ed;
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+        .get-tickets-button:hover {
+            background-color: #3182ce;
+            transform: translateY(-0.125rem);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+        .email-modal {
+            display: none;
+            position: fixed;
+            z-index: 10;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            width: 95%;
+            max-width: 450px;
+            position: relative;
+            box-shadow: 0 6px 8px -2px rgba(0, 0, 0, 0.1), 0 4px 5px -2px rgba(0, 0, 0, 0.05);
+        }
+        .modal-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.75rem;
+            color: #2d3748;
+            text-align: center;
+        }
+        .email-input-group {
+            margin-bottom: 1.5rem;
+        }
+        .email-label {
+            display: block;
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+        .email-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 1.1rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .email-input:focus {
+            outline: none;
+            border-color: #63b3ed;
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.2);
+        }
+        .subscribe-button { /* Changed ID to class */
+            background-color: #48bb78;
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            width: 100%;
+            display: block;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+        .subscribe-button:hover { /* Changed ID to class */
+            background-color: #38a169;
+            transform: translateY(-0.125rem);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+        .close-button {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            font-size: 1.75rem;
+            color: #718096;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        .close-button:hover {
+            color: #2d3748;
+        }
+        #email-error {
+            color: #e53e3e;
+            font-size: 0.9rem;
+            margin-top: 0.75rem;
+            display: none;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #3182ce;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            animation: spin 1s linear infinite;
+            margin-right: 0.75rem;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center py-10">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-semibold text-gray-800 mb-6 text-center">Events in Sydney</h1>
+        <div id="event-list" class="space-y-6">
+            <div class="text-center text-gray-500">Loading events...</div>
+        </div>
+    </div>
+
+    <div id="email-modal" class="email-modal">
+        <div class="modal-content">
+            <span id="close-button" class="close-button">&times;</span>
+            <h2 class="modal-title">Get Tickets</h2>
+            <div class="email-input-group">
+                <label for="email-input" class="email-label">Enter your email to get ticket details:</label>
+                <input type="email" id="email-input" class="email-input" placeholder="you@example.com" class="email-input">
+                <div id="email-error" class="text-red-500 text-sm mt-2">Please enter a valid email address.</div>
+            </div>
+            <button id="subscribe-button" class="subscribe-button">
+                <span id="spinner" class="loading-spinner"></span>
+                Get Tickets
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const eventList = document.getElementById('event-list');
+        const emailModal = document.getElementById('email-modal');
+        const closeButton = document.getElementById('close-button');
+        const subscribeButton = document.getElementById('subscribe-button'); /* Changed selector */
+        const emailInput = document.getElementById('email-input');
+        const emailError = document.getElementById('email-error');
+        const spinner = document.getElementById('spinner');
+
+        // Dummy event data (replace with actual scraping in a real implementation)
+        const dummyEvents = [
+            {
+                title: "Sydney Opera House Tour",
+                date: "2024-07-20",
+                description: "Explore the iconic Sydney Opera House and learn about its history.",
+                ticketUrl: "https://www.sydneyoperahouse.com/tours.html"
+            },
+            {
+                title: "Vivid Sydney",
+                date: "2024-08-09",
+                description: "A festival of light, music, ideas and food, showcasing Sydney's creativity.",
+                ticketUrl: "https://www.vividsydney.com/"
+            },
+            {
+                title: "Taronga Zoo Visit",
+                date: "2024-07-25",
+                description: "Visit Taronga Zoo and see animals from all over the world.",
+                ticketUrl: "https://taronga.org.au/sydney-zoo"
+            },
+             {
+                title: "Bondi Beach Day",
+                date: "2024-07-28",
+                description: "Enjoy a day at the famous Bondi Beach.",
+                ticketUrl: "https://www.bondibeach.com/"
+            },
+            {
+                title: "Sydney Harbour Cruise",
+                date: "2024-08-01",
+                description: "Take a cruise around the beautiful Sydney Harbour.",
+                ticketUrl: "https://www.sydneyharbourcruises.com.au/"
+            }
+        ];
+
+        // Function to display events
+        function displayEvents(events) {
+            eventList.innerHTML = '';
+            events.forEach(event => {
+                const eventCard = document.createElement('div');
+                eventCard.className = 'event-card';
+                eventCard.innerHTML = `
+                    <h2 class="event-title">${event.title}</h2>
+                    <p class="event-date">Date: ${event.date}</p>
+                    <p class="event-description">${event.description}</p>
+                    <button class="get-tickets-button" data-ticket-url="${event.ticketUrl}">
+                        Get Tickets
+                    </button>
+                `;
+                eventList.appendChild(eventCard);
+            });
+
+            const ticketButtons = document.querySelectorAll('.get-tickets-button');
+            ticketButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const ticketUrl = button.getAttribute('data-ticket-url');
+                    showEmailModal(ticketUrl);
+                });
+            });
+        }
+
+        // Function to show email modal
+        function showEmailModal(ticketUrl) {
+            emailModal.style.display = 'flex';
+            subscribeButton.dataset.ticketUrl = ticketUrl;
+            emailInput.value = '';
+            emailError.style.display = 'none';
+        }
+
+        // Function to hide email modal
+        function hideEmailModal() {
+            emailModal.style.display = 'none';
+        }
+
+        // Event listener for close button
+        closeButton.addEventListener('click', hideEmailModal);
+
+        // Event listener for subscribe button
+        subscribeButton.addEventListener('click', () => { /* Changed selector */
+            const email = emailInput.value.trim();
+            const ticketUrl = subscribeButton.dataset.ticketUrl;
+
+            if (isValidEmail(email)) {
+                emailError.style.display = 'none';
+                spinner.style.display = 'inline-block';
+                setTimeout(() => {
+                    spinner.style.display = 'none';
+                    hideEmailModal();
+                    window.location.href = ticketUrl;
+                    alert(`Thank you! You will be redirected to the ticket page: ${ticketUrl}`);
+                }, 2000);
+            } else {
+                emailError.style.display = 'block';
+            }
+        });
+
+        // Function to validate email address
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Initial display of events
+        displayEvents(dummyEvents);
+
+        // Simulate dynamic updates
+        setInterval(() => {
+            const shuffledEvents = [...dummyEvents].sort(() => Math.random() - 0.5);
+            displayEvents(shuffledEvents);
+        }, 10000);
+    </script>
+</body>
+</html>
